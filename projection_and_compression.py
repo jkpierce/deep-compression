@@ -1,0 +1,101 @@
+import numpy as np
+import skimage as ski
+from skimage import io, transform, color
+import matplotlib.pyplot as plt
+import cvxpy as cvx
+import copy
+
+def axis_set(L,shape):
+    """generate a set of L axes surrounding the image, returning R-- the length of each axis, 
+    the set of axis origins relative to the image center, normals, and tangents-- the vectors
+    characterising each axis """
+    l,w = shape 
+    R = np.sqrt(l**2+w**2)/2
+    angles = np.arange(0,2*np.pi,2*np.pi/L)
+    origins = [np.array([R*np.cos(a)+l/2,R*np.sin(a)+l/2]) for a in angles]
+    normals = [np.array([np.cos(a),np.sin(a)]) for a in angles] #directions from center of image to origins of axes
+    tangents = [np.cross(np.array([*n,0]),np.array([0,0,-1.0]))[:-1] for n in normals] #directions of axes    
+    return R,origins,normals,tangents
+
+def project(*points,shape,L):
+    """project a set of points into the coordinate frames surrounding the image as defined in axis_set. 
+    Output is list of L projected (but not compressed) vectors F-- one for each frame"""
+    l,w = shape
+    shift = np.array([l/2,w/2])#to shift vectors to be from the origin
+    R,origins,normals,tangents = axis_set(L,shape) #size of axes and their parameters
+    M = int(round(2*R)) #dimension of compressed vectors 
+    m = int(M/2) #center of compressed vector 
+    F = []
+    for i in range(L): #for each axis direction
+        o,n,t = origins[i], normals[i], tangents[i] #get the projection parameters
+        f_i = np.zeros(shape=M,dtype=float) #vector representation of points in this frame
+
+        for pt in points: 
+            #first shift the point to be from the origin
+            pt = np.array(pt)-shift
+            proj_t = np.dot(pt,t)
+            proj_n = np.dot(pt,n) #project the point onto the frame
+            proj_t_round_shift = int(round(proj_t))-m #bin of signed distance into the f_i
+            f_i[proj_t_round_shift]=proj_n 
+        
+        F.append(f_i)
+    return F          
+
+def phi(N,M):
+    """the sensing matrix"""
+    return np.random.uniform(size=(N,M))
+
+def encode(F,N,S):
+    """compress a vector representation of length M>N to length N with gauss random sensing"""
+    M, = F[0].shape
+    Y = []
+    for f in F: 
+        Y.append(np.matmul(S,f))
+    return Y #return list of compressed vectors 
+
+def decode(Y,S):
+    """decode compressed vectors Y into the expanded representations F"""
+    N,M = S.shape
+    F_hat = []
+    for y in Y: 
+        f = cvx.Variable(M)
+        objective = cvx.Minimize(cvx.norm(f,1))
+        constraints = [S*f == y]
+        prob = cvx.Problem(objective,constraints)
+        result = prob.solve(verbose=False)
+        f = np.array(f.value)
+        f = np.array([a for b in f for a in b])
+        f[np.abs(f)<1e-9]=0
+        F_hat.append(f)
+    return F_hat #return prediction of un-compressed vector representations of Y vectors 
+
+def unproject(F_hat,shape,L): 
+    """given predictions of pre-compression vectors, unproject them back to point predictions"""
+    l,w = shape
+    shift = np.array([l/2,w/2])#to shift vectors to be from the origin
+    R,origins,normals,tangents = axis_set(L,shape) #size of axes and their parameters
+    M = int(round(2*R)) #dimension of compressed vectors 
+    m = int(M/2) #center of compressed vector 
+    points = []
+    for i,f_hat in enumerate(F_hat): 
+        o,n,t = origins[i],normals[i],tangents[i]
+        inds, = np.nonzero(f_hat)
+        for j in inds: 
+            proj_n = f_hat[j]
+            proj_t = j-m 
+            pt = t*proj_t+ n*proj_n+shift
+            points.append(pt)
+    return points
+                    
+def view_points(im,*points):
+    im2 = copy.deepcopy(im)
+    im2 = ski.color.gray2rgb(im)
+    l,w,_ = im2.shape
+    for p in points:
+        x,y=p
+        if 0<x<l-1 and 0<y<w-1:
+            rr,cc = ski.draw.circle(*p,1)
+            im2[rr,cc]=[1,0,1]
+        else:
+            print('prediction outside image')
+    ski.io.imshow(im2)    

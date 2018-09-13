@@ -1,0 +1,36 @@
+#stage 1  
+
+conv1 = kernel=(11, 11), stride=(4, 4), num_filter=96)
+    relu1 = mx.symbol.Activation(data=conv1, act_type="relu")
+    pool_type="max", kernel=(3, 3), stride=(2,2))
+
+    
+
+# stage 2
+    conv2 = mx.symbol.Convolution(
+        data=lrn1, kernel=(5, 5), pad=(2, 2), num_filter=256)
+    relu2 = mx.symbol.Activation(data=conv2, act_type="relu")
+    pool2 = mx.symbol.Pooling(data=relu2, kernel=(3, 3), stride=(2, 2), pool_type="max")
+
+# stage 3
+    conv3 = kernel=(3, 3), pad=(1, 1), num_filter=384)
+    relu3 = mx.symbol.Activation(data=conv3, act_type="relu")
+    conv4 = kernel=(3, 3), pad=(1, 1), num_filter=384)
+    relu4 = mx.symbol.Activation(data=conv4, act_type="relu")
+    conv5 = kernel=(3, 3), pad=(1, 1), num_filter=256)
+    relu5 = mx.symbol.Activation(data=conv5, act_type="relu")
+    pool3 = kernel=(3, 3), stride=(2, 2), pool_type="max")
+
+
+# stage 4
+    fc1 = num_hidden=4096)
+    relu6 = mx.symbol.Activation(data=fc1, act_type="relu")
+    dropout1 = mx.symbol.Dropout(data=relu6, p=0.5)
+
+    # stage 5
+    fc2 = num_hidden=4096)
+    relu7 = mx.symbol.Activation(data=fc2, act_type="relu")
+    dropout2 = mx.symbol.Dropout(data=relu7, p=0.5)
+    # stage 6
+    fc3 = mx.symbol.FullyConnected(data=dropout2, num_hidden=num_classes) #num_classes should be the same length with label vector
+
