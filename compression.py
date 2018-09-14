@@ -64,7 +64,7 @@ def decode(Y,S):
         prob = cvx.Problem(objective,constraints)
         result = prob.solve(verbose=False)
         f = np.array(f.value)
-        f = np.array([a for b in f for a in b])
+        #f = np.array([a for b in f for a in b])
         f[np.abs(f)<1e-9]=0
         F_hat.append(f)
     return F_hat #return prediction of un-compressed vector representations of Y vectors 
@@ -120,3 +120,10 @@ def view_points(im,points):
             #print('prediction outside image')
             pass
     plt.imshow(im2)   
+    
+def decompress(Y,S,shape,L,M):
+    """ decode and unproject the encoded points signal Y given sensing matrix S, 
+    shape of image shape, length of compressed representation L, and length of 
+    uncompressed representation M = int(round(sqrt(shape[0]**2+shape[1]**2)))"""
+    if len(shape)>2: shape = shape[:-1] # in case shape is 3 channel 
+    return unproject(decode(Y,S),shape,L,M)
