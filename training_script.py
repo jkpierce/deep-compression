@@ -75,7 +75,7 @@ class AlexNet(nn.Module):
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print('device is ' , device)
-model = torch.load('200epochs.pt')
+model = torch.load('./partial-trains/200epochs.pt')
 model.train()
 model.to(device) 
 
@@ -115,8 +115,9 @@ for epoch in range(N): # epoch iterator
     # clear_output(wait=True)
     print('epoch loss: ',round(running_loss/i,2))
     if epoch%10==0 and epoch!=0:
-        n = epoch + 200
-        torch.save(model,'%03d-epochs.pt'%n)
+        n = epoch 
+        torch.save(model,'./partial-trains/%05d-epochs.pt'%n)
     losses.append(running_loss/i)
 
-torch.save(model,'currentstate.pt'%n)
+torch.save(model,'./partial-trains/finalstate.pt'%n)
+np.save('./partial-train/losses.npy',np.array(losses))
