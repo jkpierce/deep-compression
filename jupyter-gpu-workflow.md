@@ -42,28 +42,3 @@ sshuttle -Nr kpierce@cedar.computecanada.ca 0/0 --dns --exclude cedar.computecan
 scp /home/kevin/Desktop/jupyter-gpu-workflow.md  kpierce@cedar.computecanada.ca:~
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
