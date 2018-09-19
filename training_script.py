@@ -118,6 +118,7 @@ for epoch in range(N): # epoch iterator
     if epoch%10==0 and epoch!=0:
         n = epoch 
         torch.save(model,'./partial-trains/%05d-epochs.pt'%n)
+        np.save('./partial-train/losses.npy',np.array(losses))
     losses.append(running_loss/i)
 
 torch.save(model,'./partial-trains/finalstate.pt'%n)
