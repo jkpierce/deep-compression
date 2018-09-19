@@ -86,7 +86,7 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.00001)
 
 #################################################################################
-
+losses = []
 k = 30 #size of batch
 N = 1000 #number epochs
 b = int(len(train_data)/k) #number of batches
