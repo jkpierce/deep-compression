@@ -71,8 +71,8 @@ class Net(nn.Module):
         output = self.fc(output)
         return output
 
-model = Net().to(device).train()
-
+#model = Net().to(device).train()
+model = torch.load('./partial-trains/1000epochs.pt').to(device)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,verbose=True)
@@ -98,9 +98,9 @@ for epoch in range(N): # epoch iterator
     epoch_loss /= i
     print('epoch loss: ',round(epoch_loss,2)) # print/store loss
     if epoch%10==0 and epoch!=0:     
-        n = epoch
+        n = epoch + 1000
         torch.save(model,'./partial-trains/%04d-epochs.pt'%n) # save partially trained model 
     losses.append(epoch_loss) # keep the losses 
-scheduler.step(epoch_loss) # possibly modify the learning rate 
+    scheduler.step(epoch_loss) # possibly modify the learning rate 
 
 
