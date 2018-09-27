@@ -35,6 +35,9 @@ class Dataset:
         vect = torch.FloatTensor(np.concatenate(vect)) 
         return img, vect 
 
+    def __len__(self):
+        return len([f for f in os.listdir(self.path) if f.endswith('.jpg')])
+
 # Initialize dataset iterators and find gpu if available 
 train_data = Dataset('./data/training/',mode='train')
 test_data = Dataset('./data/testing/',mode='test')
