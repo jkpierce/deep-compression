@@ -46,7 +46,6 @@ def sensing_matrix(N,M):
 
 def encode(F,N,S):
     """compress a vector representation of length M>N to length N with gauss random sensing"""
-
     M, = F[0].shape
     Y = []
     for f in F: 
@@ -54,7 +53,9 @@ def encode(F,N,S):
     return Y #return list of compressed vectors and the sensing matrix 
 
 def decode(Y,S):
-    """decode compressed vectors Y into the expanded representations F"""
+    """decode compressed vectors Y into the expanded representations F
+    Y = [y1,y2,...] is a list of all compressed vectors to be decoded
+    output F_hat """
     N,M = S.shape
     F_hat = []
     for y in Y: 
@@ -65,9 +66,9 @@ def decode(Y,S):
         result = prob.solve(verbose=False)
         f = np.array(f.value)
         #f = np.array([a for b in f for a in b])
-        f[np.abs(f)<1e-9]=0
+        #f[np.abs(f)<1e-9]=0
         F_hat.append(f)
-    return F_hat #return prediction of un-compressed vector representations of Y vectors 
+    return np.array(F_hat).squeeze() #return prediction of un-compressed vector representations of Y vectors 
 
 
 def unproject(F_hat,shape,L,M): 
@@ -87,7 +88,7 @@ def unproject(F_hat,shape,L,M):
             # now go from the origin of the coordinate frame to the corner of the image 
             pt = pt + o# + shift
             points.append(pt)
-    return points
+    return np.array(points)
             
 def draw_plus(p,im,col=[1.0,0,1.0]):
     s0,s1 = im.shape[:2]
@@ -125,5 +126,4 @@ def decompress(Y,S,shape,L,M):
     """ decode and unproject the encoded points signal Y given sensing matrix S, 
     shape of image shape, length of compressed representation L, and length of 
     uncompressed representation M = int(round(sqrt(shape[0]**2+shape[1]**2)))"""
-    if len(shape)>2: shape = shape[:-1] # in case shape is 3 channel 
     return unproject(decode(Y,S),shape,L,M)
